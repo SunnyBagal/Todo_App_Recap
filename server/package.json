@@ -1,6 +1,6 @@
 {
   "name": "todo_app_recap",
-  "module": "index.ts",
+  "module": "routes/index.js",
   "type": "module",
   "private": true,
   "devDependencies": {
@@ -13,6 +13,8 @@
     "typescript": "^5"
   },
   "scripts": {
+    "dev": "bun --watch routes/index.js",
+    "start": "bun routes/index.js",
     "contract:emit": "prisma contract emit"
   },
   "dependencies": {
@@ -20,7 +22,7 @@
     "argon2": "^0.45.1",
     "dotenv": "^18.0.2",
     "express": "^5.2.1",
-    "jwt": "^0.2.0",
+    "jsonwebtoken": "^9.0.3",
     "zod": "^4.6.5"
   }
 }
