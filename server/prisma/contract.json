@@ -4,8 +4,8 @@
   "target": "mongo",
   "profileHash": "251b3ce23f6c9f561892e7c1af9d2cc941a13d64ba1aa7226b90036b09568cc3",
   "roots": {
-    "posts": {
-      "model": "Post",
+    "todos": {
+      "model": "Todo",
       "namespace": "__unbound__"
     },
     "users": {
@@ -17,7 +17,7 @@
     "namespaces": {
       "__unbound__": {
         "models": {
-          "Post": {
+          "Todo": {
             "fields": {
               "_id": {
                 "nullable": false,
@@ -26,15 +26,15 @@
                   "kind": "scalar"
                 }
               },
-              "authorId": {
+              "created_At": {
                 "nullable": false,
                 "type": {
-                  "codecId": "mongo/objectId@1",
+                  "codecId": "mongo/date@1",
                   "kind": "scalar"
                 }
               },
-              "content": {
-                "nullable": true,
+              "description": {
+                "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
                   "kind": "scalar"
@@ -46,15 +46,29 @@
                   "codecId": "mongo/string@1",
                   "kind": "scalar"
                 }
+              },
+              "updated_At": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/date@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
+                  "kind": "scalar"
+                }
               }
             },
             "relations": {
-              "author": {
+              "user": {
                 "cardinality": "N:1",
                 "nullable": false,
                 "on": {
                   "localFields": [
-                    "authorId"
+                    "userId"
                   ],
                   "targetFields": [
                     "_id"
@@ -67,7 +81,7 @@
               }
             },
             "storage": {
-              "collection": "posts"
+              "collection": "todos"
             }
           },
           "User": {
@@ -93,6 +107,13 @@
                   "kind": "scalar"
                 }
               },
+              "password": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              },
               "username": {
                 "nullable": true,
                 "type": {
@@ -101,23 +122,7 @@
                 }
               }
             },
-            "relations": {
-              "posts": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "_id"
-                  ],
-                  "targetFields": [
-                    "authorId"
-                  ]
-                },
-                "to": {
-                  "model": "Post",
-                  "namespace": "__unbound__"
-                }
-              }
-            },
+            "relations": {},
             "storage": {
               "collection": "users"
             }
@@ -131,7 +136,7 @@
       "__unbound__": {
         "entries": {
           "collection": {
-            "posts": {
+            "todos": {
               "kind": "mongo-collection",
               "validator": {
                 "jsonSchema": {
@@ -141,23 +146,29 @@
                     "_id": {
                       "bsonType": "objectId"
                     },
-                    "authorId": {
-                      "bsonType": "objectId"
+                    "created_At": {
+                      "bsonType": "date"
                     },
-                    "content": {
-                      "bsonType": [
-                        "null",
-                        "string"
-                      ]
+                    "description": {
+                      "bsonType": "string"
                     },
                     "title": {
                       "bsonType": "string"
+                    },
+                    "updated_At": {
+                      "bsonType": "date"
+                    },
+                    "userId": {
+                      "bsonType": "objectId"
                     }
                   },
                   "required": [
                     "_id",
-                    "authorId",
-                    "title"
+                    "created_At",
+                    "description",
+                    "title",
+                    "updated_At",
+                    "userId"
                   ]
                 },
                 "kind": "mongo-validator",
@@ -196,6 +207,9 @@
                         "string"
                       ]
                     },
+                    "password": {
+                      "bsonType": "string"
+                    },
                     "username": {
                       "bsonType": [
                         "null",
@@ -205,7 +219,8 @@
                   },
                   "required": [
                     "_id",
-                    "email"
+                    "email",
+                    "password"
                   ]
                 },
                 "kind": "mongo-validator",
@@ -219,7 +234,7 @@
         "kind": "mongo-database"
       }
     },
-    "storageHash": "1b32cdae5987d45006e4c8a26db4f87732e4c164ea47402253364582b1818b73"
+    "storageHash": "c28ea827a00e9d8d49e622015e22528fc715b28993e6606f2b01d234cf73cacd"
   },
   "capabilities": {},
   "extensions": {},

@@ -5,16 +5,27 @@ model User {
   email    String   @unique
   username String?
   name     String?
-  posts    Post[]
+  // ADDED: stores the argon2 hash (never the plain password).
+  // WHY: signin needs something to verify against, and Mongo's schema
+  // validator rejects fields that are not declared here.
+  password String
+  // REMOVED: `posts Post[]` — there is no Post model, so emit would fail.
+  // The User -> Todo back-reference is derived from Todo.user below.
   @@map("users")
 }
 
 model Todo {
-  id            ObjectId    @id   @map("_id")
-  title         String
-  description   String
-  created_At    DateTime    @default(now())
-  updated_At    DateTime    @default(now())
-  
+  id          ObjectId @id @map("_id")
+  title       String
+  description String
+  // ADDED: owner of the todo.
+  // WHY: without it every user would see every todo.
+  userId      ObjectId
+  user        User     @relation(fields: [userId], references: [id])
+  // CHANGED: removed @default(now()).
+  // WHY: Prisma 8 (Mongo) rejects @default here (PSL_UNSUPPORTED_FIELD_ATTRIBUTE),
+  // so the route code sets both dates with `new Date()` instead.
+  created_At  DateTime
+  updated_At  DateTime
+  @@map("todos")
 }
-
