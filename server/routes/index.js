@@ -1,6 +1,9 @@
 import express from 'express';
 // FIX: removed unused `{ argon2id }` named import — we use argon2.argon2id below.
 import argon2 from 'argon2';
+// FIX: `User` was never defined (User.create / User.find are Mongoose APIs).
+// WHY: this project uses Prisma 8, whose client lives in prisma/db.ts.
+import { db } from '../prisma/db';
 
 
 const app = express()
@@ -21,14 +24,25 @@ app.post('/signup', async (req, res) => {
       parallelism: 2
     });
 
-    await User.create({
+    // FIX: check for an existing account first.
+    // WHY: gives a clear 409 instead of relying only on the DB's error code.
+    const existing = await db.orm.users.where({ email }).first();
+    if (existing) {
+      return res.status(409).json({ message: "Email already exists" });
+    }
+
+    // FIX: was `User.create({ email, hashedPassword, ... })`.
+    // WHY: Prisma collections are `db.orm.<plural>`, and the hash must go in the
+    // `password` field declared in the schema (unknown fields are rejected).
+    await db.orm.users.create({
       email,
-      hashedPassword,
-      username: name
+      password: hashedPassword,
+      username: name ?? null,
+      name: name ?? null,
     });
 
     res.status(201).json({
-      message: "Signup successfull"
+      message: "Signup successful"
     });
 
   } catch(error) {
