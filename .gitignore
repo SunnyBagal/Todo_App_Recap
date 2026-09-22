@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+
+# environment files (secrets)
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+.cursor/
+.idea/
+.vscode/
+
+# build output
+dist/
+out/
