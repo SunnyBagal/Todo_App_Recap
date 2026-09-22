@@ -4,6 +4,8 @@ import argon2 from 'argon2';
 // FIX: `User` was never defined (User.create / User.find are Mongoose APIs).
 // WHY: this project uses Prisma 8, whose client lives in prisma/db.ts.
 import { db } from '../prisma/db';
+// FIX: `jwt.sign` was used but jwt was never imported.
+import jwt from 'jsonwebtoken';
 
 
 const app = express()
@@ -59,29 +61,44 @@ app.post('/signup', async (req, res) => {
 // FIX: was `}` — it must be `});` to close the app.post( ... ) call.
 });
 
-app.post("/signin", async(req,res) => {
-  const {email, password} = req.body;
+app.post("/signin", async (req, res) => {
+  const { email, password } = req.body;
 
-  const user = await User.find({ email });
+  // FIX: added try/catch.
+  // WHY: a DB error would otherwise crash the request with no response.
+  try {
+    // FIX: was `User.find({ email })`, which returns a list — an empty list is
+    // still truthy, so `!user` never caught a missing account. `.first()`
+    // returns one user or null.
+    const user = await db.orm.users.where({ email }).first();
 
-  if (!user){
-    return res.status(403).json({
-      message: "Inccorect Email"
+    // FIX: same message for "no such email" and "wrong password".
+    // WHY: different messages let attackers discover which emails are registered.
+    // 401 (not authenticated) fits better than 403 (forbidden).
+    if (!user) {
+      return res.status(401).json({ message: "Incorrect credentials" });
+    }
+
+    // FIX: was `argon2.verify(password, hashedPassword)`.
+    // WHY: argon2.verify(hash, plain) takes the stored hash FIRST, and
+    // `hashedPassword` didn't exist here — the hash is on user.password.
+    const passwordMatch = await argon2.verify(user.password, password);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ message: "Incorrect credentials" });
+    }
+
+    // FIX: option is `expiresIn`, not `expireIn` (the typo made jwt.sign throw).
+    const token = jwt.sign({ id: user._id.toString() }, JWT_SECRET, {
+      expiresIn: '24h'
     });
+
+    // FIX: the handler never sent a response, so the client hung forever.
+    return res.json({ token });
+  } catch (error) {
+    return res.status(500).json({ message: "Unable to signin, something went wrong" });
   }
-
-  const passwordMatch = await argon2.verify(password, hashedPassword);
-
-  if (!passwordMatch) {
-    return res.status(403).json({ message: 'Incorrect credentials' });
-  }
-
-  const token = jwt.sign({ id: user._id.toString() }, JWT_SECRET, {
-    expireIn: '24h'
-  });
-
-
-})
+});
 
 
 // FIX: `const username, email` is invalid JS (const needs a value), which
