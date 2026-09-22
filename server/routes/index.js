@@ -1,12 +1,7 @@
 import express from 'express';
-// FIX: removed unused `{ argon2id }` named import — we use argon2.argon2id below.
 import argon2 from 'argon2';
-// FIX: `User` was never defined (User.create / User.find are Mongoose APIs).
-// WHY: this project uses Prisma 8, whose client lives in prisma/db.ts.
 import { db } from '../prisma/db';
-// FIX: `jwt.sign` was used but jwt was never imported.
-import jwt from 'jsonwebtoken';
-// ADDED: zod (already installed) to validate request bodies.
+import jwt from 'jsonwebtoken';.
 import { z } from 'zod';
 
 
@@ -152,12 +147,99 @@ function auth(req, res, next) {
   }
 }
 
-// FIX: `const username, email` is invalid JS (const needs a value), which
-// stopped the whole file from running. Stubbed until the todo routes are built.
-app.post('/api/todos', auth, async (req, res) => {
-  res.status(501).json({ message: "Not implemented yet" });
+// ADDED: todo routes (replaces the unfinished `const username, email` stub).
+// Every query filters by userId so users can only touch their OWN todos.
+
+const todoSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  description: z.string().trim().max(2000).default(""),
 });
 
+// WHY: a malformed id (not 24 hex chars) would make the ObjectId codec throw
+// a 500; checking first lets us answer 404 like any other unknown todo.
+const isObjectId = (id) => /^[a-f\d]{24}$/i.test(id);
+
+// Create a todo for the logged-in user.
+app.post('/api/todos', auth, async (req, res) => {
+  const parsed = todoSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ message: "Invalid input", errors: z.flattenError(parsed.error).fieldErrors });
+  }
+
+  try {
+    // WHY new Date(): Prisma 8 Mongo has no @default(now()), so dates are set here.
+    const now = new Date();
+    const todo = await db.orm.todos.create({
+      ...parsed.data,
+      userId: req.userId,
+      created_At: now,
+      updated_At: now,
+    });
+    return res.status(201).json(todo);
+  } catch (error) {
+    return res.status(500).json({ message: "Unable to create todo" });
+  }
+});
+
+// List the logged-in user's todos, newest first.
+app.get('/api/todos', auth, async (req, res) => {
+  try {
+    const todos = await db.orm.todos
+      .where({ userId: req.userId })
+      .orderBy({ created_At: -1 })
+      .all();
+    return res.json(todos);
+  } catch (error) {
+    return res.status(500).json({ message: "Unable to fetch todos" });
+  }
+});
+
+// Update one of the user's todos.
+app.put('/api/todos/:id', auth, async (req, res) => {
+  const { id } = req.params;
+  // WHY partial(): allow updating only the title or only the description.
+  const parsed = todoSchema.partial().safeParse(req.body);
+  if (!isObjectId(id)) {
+    return res.status(404).json({ message: "Todo not found" });
+  }
+  if (!parsed.success) {
+    return res.status(400).json({ message: "Invalid input", errors: z.flattenError(parsed.error).fieldErrors });
+  }
+
+  try {
+    // WHY filter by _id AND userId: stops users editing someone else's todo.
+    const mine = db.orm.todos.where({ _id: id, userId: req.userId });
+    if (!(await mine.first())) {
+      return res.status(404).json({ message: "Todo not found" });
+    }
+
+    // WHY updated_At here: @default only covers creation.
+    await mine.update({ ...parsed.data, updated_At: new Date() });
+    return res.json(await mine.first());
+  } catch (error) {
+    return res.status(500).json({ message: "Unable to update todo" });
+  }
+});
+
+// Delete one of the user's todos.
+app.delete('/api/todos/:id', auth, async (req, res) => {
+  const { id } = req.params;
+  if (!isObjectId(id)) {
+    return res.status(404).json({ message: "Todo not found" });
+  }
+
+  try {
+    const mine = db.orm.todos.where({ _id: id, userId: req.userId });
+    if (!(await mine.first())) {
+      return res.status(404).json({ message: "Todo not found" });
+    }
+
+    await mine.delete();
+    return res.status(204).end();
+  } catch (error) {
+    return res.status(500).json({ message: "Unable to delete todo" });
+  }
+});
 
 
 const PORT = process.env.PORT;
