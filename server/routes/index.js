@@ -6,15 +6,40 @@ import argon2 from 'argon2';
 import { db } from '../prisma/db';
 // FIX: `jwt.sign` was used but jwt was never imported.
 import jwt from 'jsonwebtoken';
+// ADDED: zod (already installed) to validate request bodies.
+import { z } from 'zod';
 
 
 const app = express()
 app.use(express.json());
 const JWT_SECRET = process.env.JWT_SECRET
+// ADDED: stop at startup if the secret is missing.
+// WHY: jwt.sign would otherwise throw on every signin with a vague error.
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET is not set — add it to server/.env');
+}
+
+// ADDED: request body schemas.
+// WHY: without validation, a missing/non-string password makes argon2.hash
+// throw (500), and junk emails get stored in the database.
+const signupSchema = z.object({
+  name: z.string().trim().min(1).max(50).optional(),
+  email: z.email().toLowerCase(),
+  password: z.string().min(8).max(128),
+});
+
+const signinSchema = z.object({
+  email: z.email().toLowerCase(),
+  password: z.string().min(1),
+});
 
 app.post('/signup', async (req, res) => {
-
-  const { name, email, password }  = req.body;
+  // FIX: validate instead of trusting req.body directly.
+  const parsed = signupSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ message: "Invalid input", errors: z.flattenError(parsed.error).fieldErrors });
+  }
+  const { name, email, password } = parsed.data;
 
   try {
     const hashedPassword = await argon2.hash(password, {
@@ -62,7 +87,12 @@ app.post('/signup', async (req, res) => {
 });
 
 app.post("/signin", async (req, res) => {
-  const { email, password } = req.body;
+  // FIX: validate the body (and lowercase the email so it matches signup).
+  const parsed = signinSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ message: "Invalid input", errors: z.flattenError(parsed.error).fieldErrors });
+  }
+  const { email, password } = parsed.data;
 
   // FIX: added try/catch.
   // WHY: a DB error would otherwise crash the request with no response.
