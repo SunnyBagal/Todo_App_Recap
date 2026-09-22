@@ -242,5 +242,10 @@ app.delete('/api/todos/:id', auth, async (req, res) => {
 });
 
 
-const PORT = process.env.PORT;
-app.listen(PORT)
+// FIX: fall back to 5000 if PORT is unset and log where the server is running.
+// WHY: app.listen(undefined) silently picks a RANDOM port, so the frontend
+// wouldn't know where to find the API.
+const PORT = Number(process.env.PORT) || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
