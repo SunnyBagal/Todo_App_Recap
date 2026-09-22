@@ -1,12 +1,14 @@
 import express from 'express';
-import argon2, { argon2id } from 'argon2';
+// FIX: removed unused `{ argon2id }` named import — we use argon2.argon2id below.
+import argon2 from 'argon2';
 
 
 const app = express()
 app.use(express.json());
 const JWT_SECRET = process.env.JWT_SECRET
 
-app.post('/signup', async (req, res)){
+app.post('/signup', async (req, res) => {
+
   const { name, email, password }  = req.body;
 
   try {
@@ -40,9 +42,10 @@ app.post('/signup', async (req, res)){
       message: "Unable to signup, something went wrong"
     });
   }
-} 
+// FIX: was `}` — it must be `});` to close the app.post( ... ) call.
+});
 
-app.post("/signin", async(req,res) {
+app.post("/signin", async(req,res) => {
   const {email, password} = req.body;
 
   const user = await User.find({ email });
@@ -67,9 +70,11 @@ app.post("/signin", async(req,res) {
 })
 
 
-app.post('/api/todos',  async(req, res) => {
-  const username, email
-})
+// FIX: `const username, email` is invalid JS (const needs a value), which
+// stopped the whole file from running. Stubbed until the todo routes are built.
+app.post('/api/todos', async (req, res) => {
+  res.status(501).json({ message: "Not implemented yet" });
+});
 
 
 
