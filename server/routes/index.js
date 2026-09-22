@@ -131,9 +131,30 @@ app.post("/signin", async (req, res) => {
 });
 
 
+// ADDED: auth middleware for protected routes.
+// WHY: todo routes must know WHICH user is calling. The client sends the token
+// from /signin as `Authorization: Bearer <token>`; we verify it and put the
+// user id on req.userId. Invalid/expired tokens get a 401.
+function auth(req, res, next) {
+  const header = req.headers.authorization ?? '';
+  const [scheme, token] = header.split(' ');
+
+  if (scheme !== 'Bearer' || !token) {
+    return res.status(401).json({ message: "Missing token" });
+  }
+
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    req.userId = payload.id;
+    next();
+  } catch {
+    return res.status(401).json({ message: "Invalid or expired token" });
+  }
+}
+
 // FIX: `const username, email` is invalid JS (const needs a value), which
 // stopped the whole file from running. Stubbed until the todo routes are built.
-app.post('/api/todos', async (req, res) => {
+app.post('/api/todos', auth, async (req, res) => {
   res.status(501).json({ message: "Not implemented yet" });
 });
 
