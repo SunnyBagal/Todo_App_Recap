@@ -1,0 +1,26 @@
+{
+  "name": "todo_app_recap",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@prisma/cli-engine": "0.4.0",
+    "@types/bun": "latest",
+    "@types/node": "^26.6.2",
+    "prisma": "^8.0.0-rc.15"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "scripts": {
+    "contract:emit": "prisma contract emit"
+  },
+  "dependencies": {
+    "@prisma/orm-mongo": "^8.0.0-rc.11",
+    "argon2": "^0.45.1",
+    "dotenv": "^18.0.2",
+    "express": "^5.2.1",
+    "jwt": "^0.2.0",
+    "zod": "^4.6.5"
+  }
+}
