@@ -10,13 +10,16 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
 
   server: {
-    // The API runs on http://localhost:5000 (see server/routes/index.js).
+    // The API runs on the port in server/.env (PORT=3000).
     // A "proxy" means the browser only ever talks to localhost:5173, and Vite
     // forwards these paths to the server. That avoids CORS errors in the browser.
+    //
+    // NOTE: do not use port 5000 on macOS — AirPlay Receiver listens there and
+    // answers every request with 403, which looks exactly like a broken API.
     proxy: {
-      '/api': 'http://localhost:5000',
-      '/signup': 'http://localhost:5000',
-      '/signin': 'http://localhost:5000',
+      '/api': 'http://localhost:3000',
+      '/signup': 'http://localhost:3000',
+      '/signin': 'http://localhost:3000',
     },
   },
 
