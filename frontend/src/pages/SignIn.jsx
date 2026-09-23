@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Button, Card, ErrorText, Input } from '../components/ui'
+import { Button, Card, ErrorText, GradientText, Input } from '../components/ui'
 import { useSignin } from '../hooks/useAuth'
 
 export default function SignIn() {
@@ -22,9 +22,9 @@ export default function SignIn() {
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-12">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+        <GradientText as="h1" className="text-3xl font-bold tracking-tight">
           Welcome back
-        </h1>
+        </GradientText>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
           Sign in to see your todos.
         </p>
