@@ -1,22 +1,17 @@
 import express from 'express';
 import argon2 from 'argon2';
 import { db } from '../prisma/db';
-import jwt from 'jsonwebtoken';.
+import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 
 
 const app = express()
 app.use(express.json());
 const JWT_SECRET = process.env.JWT_SECRET
-// ADDED: stop at startup if the secret is missing.
-// WHY: jwt.sign would otherwise throw on every signin with a vague error.
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET is not set — add it to server/.env');
 }
 
-// ADDED: request body schemas.
-// WHY: without validation, a missing/non-string password makes argon2.hash
-// throw (500), and junk emails get stored in the database.
 const signupSchema = z.object({
   name: z.string().trim().min(1).max(50).optional(),
   email: z.email().toLowerCase(),
@@ -29,11 +24,16 @@ const signinSchema = z.object({
 });
 
 app.post('/signup', async (req, res) => {
-  // FIX: validate instead of trusting req.body directly.
+
   const parsed = signupSchema.safeParse(req.body);
+
   if (!parsed.success) {
-    return res.status(400).json({ message: "Invalid input", errors: z.flattenError(parsed.error).fieldErrors });
+    return res.status(400).json({ 
+      message: "Invalid input", 
+      errors: z.flattenError(parsed.error).fieldErrors 
+    });
   }
+
   const { name, email, password } = parsed.data;
 
   try {
