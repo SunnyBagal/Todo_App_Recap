@@ -68,3 +68,49 @@ export function useUpdateTodo() {
 export function useDeleteTodo() {
   return useTodoMutation((token, id) => api.deleteTodo(token, id))
 }
+
+/**
+ * Tick / untick a todo: toggleDone.mutate({ id, done: true })
+ *
+ * This one uses an OPTIMISTIC UPDATE: the checkbox flips instantly instead of
+ * waiting ~100ms for the server. The three callbacks work together:
+ *
+ *   onMutate  -> runs BEFORE the request: edit the cache by hand, and keep a
+ *                copy of the old cache in case we need to undo
+ *   onError   -> the request failed: put the old cache back (the tick "undoes"
+ *                itself, so the screen never lies about what was saved)
+ *   onSettled -> finished either way: refetch so the cache matches the server
+ */
+export function useToggleDone() {
+  const token = useAuthStore((s) => s.token)
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, done }) => api.updateTodo(token, id, { done }),
+
+    onMutate: async ({ id, done }) => {
+      // Stop any in-flight refetch, or it could land after our manual edit
+      // and overwrite it.
+      await queryClient.cancelQueries({ queryKey: todosKey })
+
+      const previous = queryClient.getQueryData(todosKey)
+
+      // Replace the one todo in the cached array. map() builds a new array:
+      // React only re-renders when the reference changes.
+      queryClient.setQueryData(todosKey, (old = []) =>
+        old.map((todo) => (todo._id === id ? { ...todo, done } : todo)),
+      )
+
+      // Whatever we return here shows up as `context` in onError.
+      return { previous }
+    },
+
+    onError: (_error, _variables, context) => {
+      queryClient.setQueryData(todosKey, context.previous)
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: todosKey })
+    },
+  })
+}
