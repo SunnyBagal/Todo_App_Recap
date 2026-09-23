@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useCreateTodo } from '../hooks/useTodos'
-import { Button, Card, ErrorText, Input } from './ui'
+import { Button, Card, ErrorText, GradientText, Input } from './ui'
 
 export default function AddTodoForm() {
   const [form, setForm] = useState({ title: '', description: '' })
@@ -17,8 +17,10 @@ export default function AddTodoForm() {
   return (
     <Card className="mb-6">
       <form onSubmit={onSubmit} className="space-y-3">
+        <GradientText as="h2" className="text-lg font-bold">
+          New todo
+        </GradientText>
         <Input
-          label="New todo"
           value={form.title}
           onChange={(e) => setForm({ ...form, title: e.target.value })}
           placeholder="What needs doing?"

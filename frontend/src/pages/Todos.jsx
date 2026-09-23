@@ -1,6 +1,6 @@
 import AddTodoForm from '../components/AddTodoForm'
 import TodoItem from '../components/TodoItem'
-import { Card, ErrorText, Skeleton } from '../components/ui'
+import { Card, ErrorText, GradientText, Skeleton } from '../components/ui'
 import { useLogout } from '../hooks/useAuth'
 import { useTodos } from '../hooks/useTodos'
 import { useAuthStore } from '../store/authStore'
@@ -60,7 +60,9 @@ export default function Todos() {
         <div className="mx-auto max-w-2xl px-4 py-5">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white">Your todos</h1>
+              <GradientText as="h1" className="text-2xl font-bold tracking-tight">
+                Your todos
+              </GradientText>
               {user && <p className="text-xs text-slate-500">{user.email}</p>}
             </div>
             <button
