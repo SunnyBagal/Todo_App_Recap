@@ -1,6 +1,34 @@
 // Tiny building blocks so the pages don't repeat long Tailwind class strings.
 // Each one is a normal React component that forwards its props to the element.
 
+/**
+ * Heading text filled with the app's signature gradient:
+ * violet -> magenta -> red, left to right.
+ *
+ * How the gradient gets INTO the letters:
+ *   bg-gradient-to-r ...   paints the box behind the text
+ *   bg-clip-text           clips that paint to the letter shapes
+ *   text-transparent       hides the normal text colour so the paint shows
+ *
+ * Usage:  <GradientText as="h1" className="text-3xl font-bold">Welcome back</GradientText>
+ *
+ * `as` lets the caller choose the tag (h1, h2, span...) so the heading level
+ * stays correct for screen readers instead of everything being a <div>.
+ */
+export function GradientText({ as: Tag = 'span', className = '', children, ...props }) {
+  return (
+    <Tag
+      className={
+        'bg-gradient-to-r from-violet-600 via-fuchsia-600 to-rose-500 bg-clip-text text-transparent ' +
+        className
+      }
+      {...props}
+    >
+      {children}
+    </Tag>
+  )
+}
+
 export function Button({ variant = 'primary', className = '', ...props }) {
   const base =
     'inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ' +
