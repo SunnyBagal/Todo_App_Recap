@@ -18,7 +18,7 @@ import type {
 } from '@prisma/orm-mongo/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'c28ea827a00e9d8d49e622015e22528fc715b28993e6606f2b01d234cf73cacd'>;
+  StorageHashBase<'59599aa72327a5019c9cc733632107da6d7b44b1eb7692f53dfa239eb681a16c'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'251b3ce23f6c9f561892e7c1af9d2cc941a13d64ba1aa7226b90036b09568cc3'>;
@@ -32,6 +32,7 @@ export type FieldOutputTypes = {
       readonly title: CodecTypes['mongo/string@1']['output'];
       readonly description: CodecTypes['mongo/string@1']['output'];
       readonly userId: CodecTypes['mongo/objectId@1']['output'];
+      readonly done: CodecTypes['mongo/bool@1']['output'] | null;
       readonly created_At: CodecTypes['mongo/date@1']['output'];
       readonly updated_At: CodecTypes['mongo/date@1']['output'];
     };
@@ -51,6 +52,7 @@ export type FieldInputTypes = {
       readonly title: CodecTypes['mongo/string@1']['input'];
       readonly description: CodecTypes['mongo/string@1']['input'];
       readonly userId: CodecTypes['mongo/objectId@1']['input'];
+      readonly done: CodecTypes['mongo/bool@1']['input'] | null;
       readonly created_At: CodecTypes['mongo/date@1']['input'];
       readonly updated_At: CodecTypes['mongo/date@1']['input'];
     };
@@ -78,6 +80,7 @@ export namespace Models {
     title: CodecTypes['mongo/string@1']['output'];
     description: CodecTypes['mongo/string@1']['output'];
     userId: CodecTypes['mongo/objectId@1']['output'];
+    done: CodecTypes['mongo/bool@1']['output'] | null;
     created_At: CodecTypes['mongo/date@1']['output'];
     updated_At: CodecTypes['mongo/date@1']['output'];
     user: unbound_User;
@@ -113,6 +116,7 @@ type ContractBase = Omit<
                     readonly title: { readonly bsonType: 'string' };
                     readonly description: { readonly bsonType: 'string' };
                     readonly userId: { readonly bsonType: 'objectId' };
+                    readonly done: { readonly bsonType: readonly ['null', 'bool'] };
                     readonly created_At: { readonly bsonType: 'date' };
                     readonly updated_At: { readonly bsonType: 'date' };
                   };
@@ -192,6 +196,10 @@ type ContractBase = Omit<
               readonly userId: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
+              };
+              readonly done: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/bool@1' };
               };
               readonly created_At: {
                 readonly nullable: false;

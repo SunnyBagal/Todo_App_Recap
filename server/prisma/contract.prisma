@@ -22,6 +22,11 @@ model Todo {
   // WHY: without it every user would see every todo.
   userId      ObjectId
   user        User     @relation(fields: [userId], references: [id])
+  // ADDED: completion flag for the "done" tick in the UI.
+  // WHY optional (Boolean?): todos created before this field existed have no
+  // `done` value, and a required field would make those documents unreadable.
+  // The frontend treats null the same as false.
+  done        Boolean?
   // CHANGED: removed @default(now()).
   // WHY: Prisma 8 (Mongo) rejects @default here (PSL_UNSUPPORTED_FIELD_ATTRIBUTE),
   // so the route code sets both dates with `new Date()` instead.

@@ -40,6 +40,13 @@
                   "kind": "scalar"
                 }
               },
+              "done": {
+                "nullable": true,
+                "type": {
+                  "codecId": "mongo/bool@1",
+                  "kind": "scalar"
+                }
+              },
               "title": {
                 "nullable": false,
                 "type": {
@@ -152,6 +159,12 @@
                     "description": {
                       "bsonType": "string"
                     },
+                    "done": {
+                      "bsonType": [
+                        "null",
+                        "bool"
+                      ]
+                    },
                     "title": {
                       "bsonType": "string"
                     },
@@ -234,7 +247,7 @@
         "kind": "mongo-database"
       }
     },
-    "storageHash": "c28ea827a00e9d8d49e622015e22528fc715b28993e6606f2b01d234cf73cacd"
+    "storageHash": "59599aa72327a5019c9cc733632107da6d7b44b1eb7692f53dfa239eb681a16c"
   },
   "capabilities": {},
   "extensions": {},
