@@ -25,12 +25,21 @@ const GRADIENTS = [
 export function gradientFor(id = '') {
   let hash = 0
   for (let i = 0; i < id.length; i++) {
-    // << 5 is "multiply by 32". The | 0 keeps the number a 32-bit integer.
-    hash = (hash << 5) - hash + id.charCodeAt(i)
-    hash |= 0
+    // Multiply by a prime and add the character code. Math.imul keeps the
+    // result a 32-bit integer instead of drifting into huge floats.
+    hash = Math.imul(hash ^ id.charCodeAt(i), 0x01000193)
   }
-  // Math.abs because the hash can be negative; % keeps it inside the array.
-  return GRADIENTS[Math.abs(hash) % GRADIENTS.length]
+
+  // Mix the high bits down into the low ones. Without this, ids that differ
+  // only in their last characters (like 'a1' and 'b2') kept landing on the
+  // same gradient, because only the lowest 3 bits decide the bucket.
+  hash ^= hash >>> 15
+  hash = Math.imul(hash, 0x2545f491)
+  hash ^= hash >>> 13
+
+  // >>> 0 turns a negative 32-bit number into a positive one;
+  // % keeps the result inside the array.
+  return GRADIENTS[(hash >>> 0) % GRADIENTS.length]
 }
 
 /**
