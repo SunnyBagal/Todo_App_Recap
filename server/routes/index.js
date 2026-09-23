@@ -153,6 +153,10 @@ function auth(req, res, next) {
 const todoSchema = z.object({
   title: z.string().trim().min(1).max(200),
   description: z.string().trim().max(2000).default(""),
+  // ADDED: the tick button sends { done: true | false }.
+  // WHY default(false): a new todo is never done, and the field must always
+  // be a real boolean in the database, never undefined.
+  done: z.boolean().default(false),
 });
 
 // WHY: a malformed id (not 24 hex chars) would make the ObjectId codec throw
