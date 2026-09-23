@@ -159,6 +159,17 @@ const todoSchema = z.object({
   done: z.boolean().default(false),
 });
 
+// FIX: a separate schema for updates instead of todoSchema.partial().
+// WHY: .partial() makes fields optional but STILL applies their defaults, so
+// editing just the title sent description:"" and done:false — silently wiping
+// the description and un-ticking a finished todo. Plain .optional() fields
+// leave anything the client didn't send untouched.
+const todoUpdateSchema = z.object({
+  title: z.string().trim().min(1).max(200).optional(),
+  description: z.string().trim().max(2000).optional(),
+  done: z.boolean().optional(),
+});
+
 // WHY: a malformed id (not 24 hex chars) would make the ObjectId codec throw
 // a 500; checking first lets us answer 404 like any other unknown todo.
 const isObjectId = (id) => /^[a-f\d]{24}$/i.test(id);
@@ -202,7 +213,7 @@ app.get('/api/todos', auth, async (req, res) => {
 app.put('/api/todos/:id', auth, async (req, res) => {
   const { id } = req.params;
   // WHY partial(): allow updating only the title or only the description.
-  const parsed = todoSchema.partial().safeParse(req.body);
+  const parsed = todoUpdateSchema.safeParse(req.body);
   if (!isObjectId(id)) {
     return res.status(404).json({ message: "Todo not found" });
   }
